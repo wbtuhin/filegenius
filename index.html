@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileGenius - Client-Side File & Text Utilities by TUHIN BALLABH</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- PDF.js for Rendering PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- QRCode.js for QR Code Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .drag-active {
+            border-color: #4f46e5 !important;
+            background-color: #eef2ff !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-full text-slate-800">
+
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Author -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-slate-900 to-brand-700 bg-clip-text text-transparent">FileGenius</span>
+                        <span class="hidden lg:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">By TUHIN BALLABH</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-1">
+                    <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-brand-600 bg-brand-50">
+                        <i class="fa-solid fa-house mr-1"></i> Home
+                    </button>
+                    <button onclick="switchTab('img-converter')" id="nav-img-converter" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-file-image mr-1"></i> Format Converter
+                    </button>
+                    <button onclick="switchTab('img-resizer')" id="nav-img-resizer" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-expand mr-1"></i> Resizer
+                    </button>
+                    <button onclick="switchTab('img-to-pdf')" id="nav-img-to-pdf" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-file-pdf mr-1"></i> Images to PDF
+                    </button>
+                    <button onclick="switchTab('pdf-to-img')" id="nav-pdf-to-img" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-images mr-1"></i> PDF to PNG
+                    </button>
+                    <button onclick="switchTab('text-tools')" id="nav-text-tools" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-code mr-1"></i> Text/JSON
+                    </button>
+                    <button onclick="switchTab('qr-generator')" id="nav-qr-generator" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <i class="fa-solid fa-qrcode mr-1"></i> QR Generator
+                    </button>
+                </nav>
+
+                <!-- Privacy Badge -->
+                <div class="hidden sm:flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                    <span>100% Client-Side</span>
+                </div>
+
+                <!-- Mobile Navigation Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
+            <button onclick="switchTab('home')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Home</button>
+            <button onclick="switchTab('img-converter')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">JPG / PNG Converter</button>
+            <button onclick="switchTab('img-resizer')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Resizer & Compressor</button>
+            <button onclick="switchTab('img-to-pdf')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Images to PDF</button>
+            <button onclick="switchTab('pdf-to-img')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">PDF to Images</button>
+            <button onclick="switchTab('text-tools')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Text & JSON Utilities</button>
+            <button onclick="switchTab('qr-generator')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">QR Code Generator</button>
+        </div>
+    </header>
+
+    <!-- Main Content Containers -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= HOME TAB ================= -->
+        <section id="tab-home" class="tab-content space-y-10">
+            <!-- Hero Banner -->
+            <div class="text-center space-y-4 max-w-3xl mx-auto pt-4">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200">
+                    <i class="fa-solid fa-heart text-rose-500"></i> Created with ❤️ by TUHIN BALLABH
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+                    Smart Browser Utilities. <br class="hidden sm:inline"/> Zero Server Uploads.
+                </h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    A suite of fast, privacy-focused client-side file and text tools. Convert, resize, process PDFs, format code, and generate QR codes with instant performance.
+                </p>
+            </div>
+
+            <!-- Feature Cards Grid -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <!-- Card 1: Image Converter -->
+                <div onclick="switchTab('img-converter')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl mb-4 group-hover:bg-brand-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-right-left"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">JPG / PNG / WEBP Converter</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Seamlessly convert images between popular formats while preserving visual quality.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-brand-600 group-hover:text-brand-700">
+                        Open Converter <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Card 2: Image Resizer -->
+                <div onclick="switchTab('img-resizer')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-compress"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Resizer & Compressor</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Adjust dimensions, control compression quality, and shrink file sizes in real-time.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-purple-600 group-hover:text-purple-700">
+                        Resize Image <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Card 3: Images to PDF -->
+                <div onclick="switchTab('img-to-pdf')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Images to PDF</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Merge photos or documents into a neat single PDF file with customizable orientation and margins.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-emerald-600 group-hover:text-emerald-700">
+                        Build PDF <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Card 4: PDF to Images -->
+                <div onclick="switchTab('pdf-to-img')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:bg-amber-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-images"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">PDF to Image Extractor</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Render and extract pages from any PDF document as individual high-resolution PNG images.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-amber-600 group-hover:text-amber-700">
+                        Extract Pages <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Card 5: Text Utilities -->
+                <div onclick="switchTab('text-tools')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl mb-4 group-hover:bg-sky-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Text & JSON Toolkit</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Analyze character & word counts, switch text casing, and format/validate JSON objects.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-sky-600 group-hover:text-sky-700">
+                        Open Toolkit <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Card 6: QR Code Generator -->
+                <div onclick="switchTab('qr-generator')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:bg-rose-600 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">QR Code Studio</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Generate clean, downloadable QR codes for web URLs, Wi-Fi details, or custom text.
+                    </p>
+                    <div class="inline-flex items-center text-sm font-semibold text-rose-600 group-hover:text-rose-700">
+                        Create QR <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Banner -->
+            <div class="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl max-w-5xl mx-auto">
+                <div class="grid sm:grid-cols-3 gap-8 text-center">
+                    <div class="space-y-2">
+                        <i class="fa-solid fa-lock text-3xl text-indigo-400 mb-1"></i>
+                        <h4 class="font-bold text-base">Complete Privacy</h4>
+                        <p class="text-xs text-slate-400">All logic runs entirely within your browser engine. Files stay on your device.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <i class="fa-solid fa-bolt text-3xl text-amber-400 mb-1"></i>
+                        <h4 class="font-bold text-base">Zero Upload Delays</h4>
+                        <p class="text-xs text-slate-400">Instant file conversions without network bottlenecks or bandwidth limits.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <i class="fa-solid fa-code-commit text-3xl text-emerald-400 mb-1"></i>
+                        <h4 class="font-bold text-base">Static Ready</h4>
+                        <p class="text-xs text-slate-400">Lightweight architecture designed for GitHub Pages & static web hosts.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TOOL 1: IMAGE CONVERTER ================= -->
+        <section id="tab-img-converter" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Image Format Converter</h2>
+                <p class="text-slate-600 text-sm">Convert images between JPG, PNG, and WEBP formats in your browser.</p>
+            </div>
+
+            <!-- Drop Zone -->
+            <div id="conv-dropzone" onclick="document.getElementById('conv-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-8 text-center bg-white hover:bg-brand-50/50 transition-all cursor-pointer shadow-sm">
+                <input type="file" id="conv-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" multiple onchange="handleConverterFiles(this.files)">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800">Click to select or drag and drop images here</p>
+                        <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, and WEBP files</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Toolbar -->
+            <div id="conv-controls" class="hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-medium text-slate-700">Target Format:</label>
+                    <select id="conv-target-format" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="image/png">PNG (.png)</option>
+                        <option value="image/jpeg">JPG (.jpg)</option>
+                        <option value="image/webp">WEBP (.webp)</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="clearConverter()" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-slate-200">
+                        <i class="fa-solid fa-trash mr-1"></i> Clear All
+                    </button>
+                    <button onclick="convertAllImages()" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 shadow-sm transition-all">
+                        <i class="fa-solid fa-gear mr-1"></i> Convert Images
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image File List Container -->
+            <div id="conv-file-list" class="space-y-4"></div>
+        </section>
+
+        <!-- ================= TOOL 2: RESIZER & COMPRESSOR ================= -->
+        <section id="tab-img-resizer" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Image Resizer & Compressor</h2>
+                <p class="text-slate-600 text-sm">Resize dimensions, maintain aspect ratio, and adjust image quality compression.</p>
+            </div>
+
+            <!-- Resizer Dropzone -->
+            <div id="resize-dropzone" onclick="document.getElementById('resize-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-2xl p-8 text-center bg-white hover:bg-purple-50/50 transition-all cursor-pointer shadow-sm">
+                <input type="file" id="resize-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="loadResizeImage(this.files[0])">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 mx-auto flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-compress"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800">Select an image to resize or compress</p>
+                        <p class="text-xs text-slate-500 mt-1">Upload JPG, PNG or WEBP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resizer Workspace (Hidden until image selected) -->
+            <div id="resize-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Image Preview</h3>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex items-center justify-center h-64 overflow-hidden">
+                        <img id="resize-preview-img" class="max-h-full max-w-full object-contain rounded-lg">
+                    </div>
+                    <div class="text-xs text-slate-500 space-y-1">
+                        <p>Original Dimensions: <span id="resize-orig-dim" class="font-semibold text-slate-700">0 x 0</span> px</p>
+                        <p>Original Size: <span id="resize-orig-size" class="font-semibold text-slate-700">0 KB</span></p>
+                    </div>
+                </div>
+
+                <div class="space-y-5 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Resize Settings</h3>
+                        
+                        <!-- Width & Height -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Width (px)</label>
+                                <input type="number" id="resize-width" oninput="handleDimensionChange('width')" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Height (px)</label>
+                                <input type="number" id="resize-height" oninput="handleDimensionChange('height')" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Maintain Aspect Ratio -->
+                        <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
+                            <input type="checkbox" id="resize-aspect-ratio" checked class="rounded text-purple-600 focus:ring-purple-500">
+                            <span>Maintain aspect ratio</span>
+                        </label>
+
+                        <!-- Quality Slider -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                                <span>Compression Quality</span>
+                                <span id="quality-val">90%</span>
+                            </div>
+                            <input type="range" id="resize-quality" min="10" max="100" value="90" oninput="document.getElementById('quality-val').textContent = this.value + '%'" class="w-full accent-purple-600">
+                        </div>
+
+                        <!-- Format -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Output Format</label>
+                            <select id="resize-format" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                <option value="image/jpeg">JPG (.jpg)</option>
+                                <option value="image/png">PNG (.png)</option>
+                                <option value="image/webp">WEBP (.webp)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="processAndDownloadResized()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-download mr-2"></i> Process & Download
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TOOL 3: IMAGES TO PDF ================= -->
+        <section id="tab-img-to-pdf" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Images to PDF Converter</h2>
+                <p class="text-slate-600 text-sm">Combine multiple pictures into a single, clean PDF file.</p>
+            </div>
+
+            <!-- PDF Drop Zone -->
+            <div id="pdf-dropzone" onclick="document.getElementById('pdf-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-8 text-center bg-white hover:bg-emerald-50/50 transition-all cursor-pointer shadow-sm">
+                <input type="file" id="pdf-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" multiple onchange="handlePdfFiles(this.files)">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800">Select or drop pictures to compile into PDF</p>
+                        <p class="text-xs text-slate-500 mt-1">Upload multiple photos (JPG, PNG, WEBP)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Settings Bar -->
+            <div id="pdf-controls" class="hidden bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Page Orientation</label>
+                        <select id="pdf-orientation" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="p">Portrait</option>
+                            <option value="l">Landscape</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Page Margin</label>
+                        <select id="pdf-margin" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">No Margin</option>
+                            <option value="10">Small (10mm)</option>
+                            <option value="20">Large (20mm)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Output File Name</label>
+                        <input type="text" id="pdf-filename" value="compiled-document" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="File name without .pdf">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                    <button onclick="clearPdfList()" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-slate-200">
+                        <i class="fa-solid fa-trash mr-1"></i> Clear All
+                    </button>
+                    <button onclick="generatePDF()" class="px-5 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-all flex items-center">
+                        <i class="fa-solid fa-download mr-2"></i> Generate & Download PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- PDF Page Preview Grid -->
+            <div id="pdf-preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+        </section>
+
+        <!-- ================= TOOL 4: PDF TO IMAGES ================= -->
+        <section id="tab-pdf-to-img" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">PDF to Image Extractor</h2>
+                <p class="text-slate-600 text-sm">Render and convert PDF pages into PNG images completely inside your browser.</p>
+            </div>
+
+            <!-- PDF Input Dropzone -->
+            <div id="pdf-img-dropzone" onclick="document.getElementById('pdf-img-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl p-8 text-center bg-white hover:bg-amber-50/50 transition-all cursor-pointer shadow-sm">
+                <input type="file" id="pdf-img-file-input" accept="application/pdf" class="hidden" onchange="renderPdfToImages(this.files[0])">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-slate-800">Select a PDF file to extract pages as images</p>
+                        <p class="text-xs text-slate-500 mt-1">Supports standard PDF documents</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rendered Pages Output Grid -->
+            <div id="pdf-pages-container" class="space-y-4"></div>
+        </section>
+
+        <!-- ================= TOOL 5: TEXT & JSON UTILITIES ================= -->
+        <section id="tab-text-tools" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Text & JSON Utilities</h2>
+                <p class="text-slate-600 text-sm">Word count metrics, case conversions, and JSON formatting/validation.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <!-- Text Area -->
+                <textarea id="text-input" rows="8" oninput="analyzeText()" class="w-full border border-slate-300 rounded-xl p-4 text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Paste or type text/JSON content here..."></textarea>
+
+                <!-- Statistics Bar -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl text-center border border-slate-100">
+                    <div>
+                        <span class="block text-xs font-medium text-slate-500">Characters</span>
+                        <span id="stat-chars" class="text-base font-bold text-slate-800">0</span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-slate-500">Words</span>
+                        <span id="stat-words" class="text-base font-bold text-slate-800">0</span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-slate-500">Lines</span>
+                        <span id="stat-lines" class="text-base font-bold text-slate-800">0</span>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-slate-500">JSON Status</span>
+                        <span id="stat-json" class="text-xs font-bold text-slate-400">Not Evaluated</span>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div class="flex flex-wrap gap-2 pt-2">
+                    <button onclick="transformCase('upper')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">UPPERCASE</button>
+                    <button onclick="transformCase('lower')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">lowercase</button>
+                    <button onclick="transformCase('title')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">Title Case</button>
+                    <button onclick="formatJSON()" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm ml-auto">
+                        <i class="fa-solid fa-align-left mr-1"></i> Format JSON
+                    </button>
+                    <button onclick="copyTextContent()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm">
+                        <i class="fa-solid fa-copy mr-1"></i> Copy Text
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TOOL 6: QR CODE GENERATOR ================= -->
+        <section id="tab-qr-generator" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">QR Code Studio</h2>
+                <p class="text-slate-600 text-sm">Generate customizable QR codes for links, text, and contact details instantly.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <!-- Controls -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Text or URL Content</label>
+                        <input type="text" id="qr-text" value="https://github.com" oninput="generateQRCode()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="Enter text or website URL">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Foreground Color</label>
+                            <input type="color" id="qr-fg" value="#0f172a" onchange="generateQRCode()" class="w-full h-10 border border-slate-300 rounded-lg p-1 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Background Color</label>
+                            <input type="color" id="qr-bg" value="#ffffff" onchange="generateQRCode()" class="w-full h-10 border border-slate-300 rounded-lg p-1 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Display -->
+                <div class="flex flex-col items-center justify-center space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0">
+                    <div id="qrcode-box" class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center"></div>
+                    <button onclick="downloadQRCode()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-sm transition-all flex items-center">
+                        <i class="fa-solid fa-download mr-2"></i> Download QR Image
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto bg-white border-t border-slate-200 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center text-xs text-slate-500 space-y-2 sm:space-y-0">
+            <div>
+                &copy; <span id="year"></span> <strong>FileGenius</strong>. Created with ❤️ by <strong class="text-slate-800">TUHIN BALLABH</strong>.
+            </div>
+            <div class="flex justify-center space-x-4">
+                <span class="inline-flex items-center text-emerald-700 font-semibold">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Client-Side Processing
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Set PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Dynamic Year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Application Global States
+        let converterFiles = [];
+        let pdfFiles = [];
+        let activeResizeFile = null;
+        let resizeImgAspectRatio = 1;
+
+        // Navigation Router
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600', 'bg-brand-50');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if(activeTab) activeTab.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('text-brand-600', 'bg-brand-50');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            if(tabId === 'qr-generator') {
+                setTimeout(generateQRCode, 100);
+            }
+
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // Notification Toast Engine
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-slate-800';
+            const iconClass = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+            toast.className = `pointer-events-auto flex items-center space-x-2 text-white text-sm px-4 py-3 rounded-xl shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Setup Generic Drag & Drop Handlers
+        function setupDragDrop(zoneId, handler) {
+            const zone = document.getElementById(zoneId);
+            if(!zone) return;
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                zone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-active');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                zone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-active');
+                }, false);
+            });
+
+            zone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handler(files);
+            }, false);
+        }
+
+        setupDragDrop('conv-dropzone', handleConverterFiles);
+        setupDragDrop('pdf-dropzone', handlePdfFiles);
+
+        /* ================= TOOL 1: IMAGE CONVERTER LOGIC ================= */
+        function handleConverterFiles(files) {
+            if(!files || files.length === 0) return;
+
+            for(let file of files) {
+                if(!file.type.startsWith('image/')) {
+                    showToast(`${file.name} is not a supported image file`, 'error');
+                    continue;
+                }
+                converterFiles.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    file: file,
+                    convertedUrl: null,
+                    status: 'pending'
+                });
+            }
+
+            renderConverterList();
+            showToast(`${files.length} file(s) added to converter`);
+        }
+
+        function renderConverterList() {
+            const listEl = document.getElementById('conv-file-list');
+            const controlsEl = document.getElementById('conv-controls');
+
+            if(converterFiles.length === 0) {
+                listEl.innerHTML = '';
+                controlsEl.classList.add('hidden');
+                return;
+            }
+
+            controlsEl.classList.remove('hidden');
+            listEl.innerHTML = '';
+
+            converterFiles.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4";
+                
+                const origSize = (item.file.size / 1024).toFixed(1) + ' KB';
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-4 w-full sm:w-auto">
+                        <img src="${URL.createObjectURL(item.file)}" class="w-16 h-16 object-cover rounded-lg border border-slate-200 bg-slate-50 flex-shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-semibold text-slate-800 text-sm truncate max-w-xs">${item.file.name}</h4>
+                            <p class="text-xs text-slate-500">Original: ${origSize} | ${item.file.type.split('/')[1].toUpperCase()}</p>
+                            <span class="inline-block mt-1 text-xs font-semibold text-slate-500">
+                                ${item.status === 'converted' ? '<span class="text-emerald-600"><i class="fa-solid fa-check"></i> Converted</span>' : 'Ready to convert'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        ${item.convertedUrl ? `
+                            <a href="${item.convertedUrl}" download="converted-${item.file.name.split('.')[0]}.${getSelectedExt()}" class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition-all flex items-center">
+                                <i class="fa-solid fa-download mr-1"></i> Download
+                            </a>
+                        ` : ''}
+                        <button onclick="removeConverterFile('${item.id}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function getSelectedExt() {
+            const mime = document.getElementById('conv-target-format').value;
+            if(mime === 'image/png') return 'png';
+            if(mime === 'image/jpeg') return 'jpg';
+            if(mime === 'image/webp') return 'webp';
+            return 'png';
+        }
+
+        function removeConverterFile(id) {
+            converterFiles = converterFiles.filter(item => item.id !== id);
+            renderConverterList();
+        }
+
+        function clearConverter() {
+            converterFiles = [];
+            renderConverterList();
+        }
+
+        function convertAllImages() {
+            const targetMime = document.getElementById('conv-target-format').value;
+            if(converterFiles.length === 0) return;
+
+            let completed = 0;
+
+            converterFiles.forEach(item => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+
+                    if (targetMime === 'image/jpeg') {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    ctx.drawImage(img, 0, 0);
+
+                    canvas.toBlob((blob) => {
+                        item.convertedUrl = URL.createObjectURL(blob);
+                        item.status = 'converted';
+                        completed++;
+
+                        if(completed === converterFiles.length) {
+                            renderConverterList();
+                            showToast('All images converted successfully!', 'success');
+                        }
+                    }, targetMime, 0.92);
+                };
+                img.src = URL.createObjectURL(item.file);
+            });
+        }
+
+        /* ================= TOOL 2: RESIZER & COMPRESSOR LOGIC ================= */
+        function loadResizeImage(file) {
+            if(!file || !file.type.startsWith('image/')) {
+                showToast('Please select a valid image file', 'error');
+                return;
+            }
+
+            activeResizeFile = file;
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+
+            img.onload = () => {
+                resizeImgAspectRatio = img.width / img.height;
+                document.getElementById('resize-width').value = img.width;
+                document.getElementById('resize-height').value = img.height;
+                document.getElementById('resize-orig-dim').textContent = `${img.width} x ${img.height}`;
+                document.getElementById('resize-orig-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+                
+                document.getElementById('resize-preview-img').src = url;
+                document.getElementById('resize-workspace').classList.remove('hidden');
+                showToast('Image loaded into Resizer Studio');
+            };
+
+            img.src = url;
+        }
+
+        function handleDimensionChange(changed) {
+            const maintain = document.getElementById('resize-aspect-ratio').checked;
+            if(!maintain) return;
+
+            const widthInput = document.getElementById('resize-width');
+            const heightInput = document.getElementById('resize-height');
+
+            if(changed === 'width') {
+                const val = parseFloat(widthInput.value) || 0;
+                heightInput.value = Math.round(val / resizeImgAspectRatio);
+            } else {
+                const val = parseFloat(heightInput.value) || 0;
+                widthInput.value = Math.round(val * resizeImgAspectRatio);
+            }
+        }
+
+        function processAndDownloadResized() {
+            if(!activeResizeFile) return;
+
+            const targetWidth = parseInt(document.getElementById('resize-width').value, 10);
+            const targetHeight = parseInt(document.getElementById('resize-height').value, 10);
+            const quality = parseInt(document.getElementById('resize-quality').value, 10) / 100;
+            const mime = document.getElementById('resize-format').value;
+
+            if(!targetWidth || !targetHeight) {
+                showToast('Please enter valid width and height', 'error');
+                return;
+            }
+
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                const ctx = canvas.getContext('2d');
+
+                if (mime === 'image/jpeg') {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                canvas.toBlob((blob) => {
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const ext = mime.split('/')[1];
+                    a.href = downloadUrl;
+                    a.download = `resized-image.${ext}`;
+                    a.click();
+                    showToast('Resized image downloaded!', 'success');
+                }, mime, quality);
+            };
+
+            img.src = URL.createObjectURL(activeResizeFile);
+        }
+
+        /* ================= TOOL 3: IMAGES TO PDF LOGIC ================= */
+        function handlePdfFiles(files) {
+            if(!files || files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                if(!file.type.startsWith('image/')) {
+                    showToast(`${file.name} is not a valid image`, 'error');
+                    return;
+                }
+                pdfFiles.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    file: file,
+                    previewUrl: URL.createObjectURL(file)
+                });
+            });
+
+            renderPdfPreview();
+            showToast('Image(s) added to PDF builder');
+        }
+
+        function renderPdfPreview() {
+            const grid = document.getElementById('pdf-preview-grid');
+            const controls = document.getElementById('pdf-controls');
+
+            if(pdfFiles.length === 0) {
+                grid.innerHTML = '';
+                controls.classList.add('hidden');
+                return;
+            }
+
+            controls.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            pdfFiles.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "relative bg-white p-2 rounded-xl border border-slate-200 shadow-sm group hover:border-emerald-400 transition-all";
+                card.innerHTML = `
+                    <div class="absolute top-3 left-3 bg-slate-900/70 text-white text-[10px] px-2 py-0.5 rounded-full font-semibold backdrop-blur-sm">
+                        Page ${index + 1}
+                    </div>
+                    <button onclick="removePdfFile('${item.id}')" class="absolute top-3 right-3 bg-rose-600 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                    <img src="${item.previewUrl}" class="w-full h-36 object-cover rounded-lg bg-slate-50 border border-slate-100">
+                    <div class="mt-2 text-center truncate text-xs text-slate-600 font-medium px-1">
+                        ${item.file.name}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function removePdfFile(id) {
+            pdfFiles = pdfFiles.filter(item => item.id !== id);
+            renderPdfPreview();
+        }
+
+        function clearPdfList() {
+            pdfFiles = [];
+            renderPdfPreview();
+        }
+
+        async function generatePDF() {
+            if(pdfFiles.length === 0) {
+                showToast('Please add at least one image', 'error');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const orientation = document.getElementById('pdf-orientation').value;
+            const margin = parseInt(document.getElementById('pdf-margin').value, 10);
+            let fileName = document.getElementById('pdf-filename').value.trim() || 'compiled-document';
+
+            showToast('Generating PDF document...', 'info');
+
+            const pdf = new jsPDF({
+                orientation: orientation,
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            for (let i = 0; i < pdfFiles.length; i++) {
+                if (i > 0) pdf.addPage();
+
+                const item = pdfFiles[i];
+                const imgData = await getBase64FromUrl(item.previewUrl);
+
+                const imgProps = pdf.getImageProperties(imgData);
+                const printableWidth = pageWidth - (margin * 2);
+                const printableHeight = pageHeight - (margin * 2);
+
+                let renderWidth = printableWidth;
+                let renderHeight = (imgProps.height * renderWidth) / imgProps.width;
+
+                if (renderHeight > printableHeight) {
+                    renderHeight = printableHeight;
+                    renderWidth = (imgProps.width * renderHeight) / imgProps.height;
+                }
+
+                const xPos = margin + (printableWidth - renderWidth) / 2;
+                const yPos = margin + (printableHeight - renderHeight) / 2;
+
+                pdf.addImage(imgData, 'JPEG', xPos, yPos, renderWidth, renderHeight);
+            }
+
+            pdf.save(`${fileName}.pdf`);
+            showToast('PDF downloaded successfully!', 'success');
+        }
+
+        function getBase64FromUrl(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/jpeg', 0.95));
+                };
+                img.onerror = error => reject(error);
+                img.src = url;
+            });
+        }
+
+        /* ================= TOOL 4: PDF TO IMAGES LOGIC ================= */
+        async function renderPdfToImages(file) {
+            if(!file || file.type !== 'application/pdf') {
+                showToast('Please select a valid PDF file', 'error');
+                return;
+            }
+
+            const container = document.getElementById('pdf-pages-container');
+            container.innerHTML = '<div class="p-8 text-center text-slate-500 font-medium">Processing PDF Pages...</div>';
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                container.innerHTML = '';
+                showToast(`Rendering ${pdf.numPages} PDF pages...`);
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                    const imgUrl = canvas.toDataURL('image/png');
+
+                    const pageCard = document.createElement('div');
+                    pageCard.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4";
+                    pageCard.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <img src="${imgUrl}" class="w-20 h-24 object-cover border border-slate-200 rounded-md bg-slate-50">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Page ${pageNum} of ${pdf.numPages}</h4>
+                                <p class="text-xs text-slate-500">${viewport.width} x ${viewport.height} px</p>
+                            </div>
+                        </div>
+                        <a href="${imgUrl}" download="page-${pageNum}.png" class="px-4 py-2 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 text-xs font-semibold flex items-center">
+                            <i class="fa-solid fa-download mr-1.5"></i> Download PNG
+                        </a>
+                    `;
+                    container.appendChild(pageCard);
+                }
+            } catch(e) {
+                container.innerHTML = '<div class="p-4 text-center text-rose-600 text-sm">Failed to render PDF file.</div>';
+                showToast('Error reading PDF file', 'error');
+            }
+        }
+
+        /* ================= TOOL 5: TEXT & JSON LOGIC ================= */
+        function analyzeText() {
+            const val = document.getElementById('text-input').value;
+            document.getElementById('stat-chars').textContent = val.length;
+            document.getElementById('stat-words').textContent = val.trim() ? val.trim().split(/\s+/).length : 0;
+            document.getElementById('stat-lines').textContent = val ? val.split('\n').length : 0;
+
+            const jsonStat = document.getElementById('stat-json');
+            if(!val.trim()) {
+                jsonStat.textContent = 'Not Evaluated';
+                jsonStat.className = 'text-xs font-bold text-slate-400';
+                return;
+            }
+
+            try {
+                JSON.parse(val);
+                jsonStat.textContent = 'Valid JSON';
+                jsonStat.className = 'text-xs font-bold text-emerald-600';
+            } catch(e) {
+                jsonStat.textContent = 'Invalid JSON';
+                jsonStat.className = 'text-xs font-bold text-rose-500';
+            }
+        }
+
+        function transformCase(mode) {
+            const textarea = document.getElementById('text-input');
+            let val = textarea.value;
+
+            if(mode === 'upper') val = val.toUpperCase();
+            if(mode === 'lower') val = val.toLowerCase();
+            if(mode === 'title') {
+                val = val.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+            }
+
+            textarea.value = val;
+            analyzeText();
+            showToast(`Converted text to ${mode}case`);
+        }
+
+        function formatJSON() {
+            const textarea = document.getElementById('text-input');
+            try {
+                const parsed = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(parsed, null, 2);
+                analyzeText();
+                showToast('Formatted JSON successfully!', 'success');
+            } catch(e) {
+                showToast('Cannot format: Invalid JSON text', 'error');
+            }
+        }
+
+        function copyTextContent() {
+            const textarea = document.getElementById('text-input');
+            if(!textarea.value) return;
+
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Text copied to clipboard!', 'success');
+        }
+
+        /* ================= TOOL 6: QR CODE LOGIC ================= */
+        function generateQRCode() {
+            const container = document.getElementById('qrcode-box');
+            container.innerHTML = '';
+
+            const text = document.getElementById('qr-text').value.trim() || 'https://github.com';
+            const fg = document.getElementById('qr-fg').value;
+            const bg = document.getElementById('qr-bg').value;
+
+            new QRCode(container, {
+                text: text,
+                width: 180,
+                height: 180,
+                colorDark: fg,
+                colorLight: bg,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function downloadQRCode() {
+            const img = document.querySelector('#qrcode-box img');
+            if(!img) return;
+
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = 'qrcode.png';
+            a.click();
+            showToast('QR Code downloaded!', 'success');
+        }
+    </script>
+</body>
+</html>s
