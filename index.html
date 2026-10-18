@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- QRCode.js for QR Code Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- MediaPipe Selfie Segmentation AI for Browser-based Background Removal -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+
+
+
     <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
@@ -22,7 +29,6 @@
                     colors: {
                         brand: {
                             50: '#eef2ff',
-                            100: '#e0e7ff',
                             500: '#6366f1',
                             600: '#4f46e5',
                             700: '#4338ca',
@@ -36,317 +42,470 @@
     <!-- Link External CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="flex flex-col min-h-full text-slate-800">
+<body class="flex flex-col min-h-full bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
 
     <!-- Toast Notification System -->
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo & Author -->
-                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                <div class="flex items-center space-x-3 cursor-pointer group" onclick="switchTab('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/20 group-hover:scale-105 transition-transform">
                         <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
                     </div>
                     <div>
-                        <span class="text-xl font-bold bg-gradient-to-r from-slate-900 to-brand-700 bg-clip-text text-transparent">FileGenius</span>
-                        <span class="hidden lg:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">By TUHIN BALLABH</span>
+                        <span class="text-xl font-extrabold bg-gradient-to-r from-white via-indigo-200 to-rose-300 bg-clip-text text-transparent">FileGenius</span>
+                        <span class="hidden lg:inline-block ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">By TUHIN BALLABH</span>
                     </div>
                 </div>
 
                 <!-- Desktop Navigation -->
                 <nav class="hidden xl:flex space-x-1">
-                    <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-brand-600 bg-brand-50">
-                        <i class="fa-solid fa-house mr-1"></i> Home
+                    <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">
+                        <i class="fa-solid fa-house mr-1.5"></i> Home
                     </button>
-                    <button onclick="switchTab('pomodoro')" id="nav-pomodoro" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-clock-rotate-left mr-1"></i> Pomodoro Timer
+                    <button onclick="switchTab('pomodoro')" id="nav-pomodoro" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-clock-rotate-left mr-1.5 text-rose-400"></i> Focus Timer
                     </button>
-                    <button onclick="switchTab('bg-remover')" id="nav-bg-remover" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-eraser mr-1"></i> BG Remover
+
+                    <button onclick="switchTab('passport-maker')" id="nav-passport-maker" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+    <i class="fa-solid fa-id-card mr-1.5 text-cyan-400"></i> Passport Maker
+</button>
+
+
+                    <button onclick="switchTab('bg-remover')" id="nav-bg-remover" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-eraser mr-1.5 text-indigo-400"></i> BG Remover
                     </button>
-                    <button onclick="switchTab('img-converter')" id="nav-img-converter" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-file-image mr-1"></i> Converter
+                    <button onclick="switchTab('img-converter')" id="nav-img-converter" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-file-image mr-1.5"></i> Converter
                     </button>
-                    <button onclick="switchTab('img-resizer')" id="nav-img-resizer" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-expand mr-1"></i> Resizer
+                    <button onclick="switchTab('img-resizer')" id="nav-img-resizer" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-expand mr-1.5"></i> Resizer
                     </button>
-                    <button onclick="switchTab('img-to-pdf')" id="nav-img-to-pdf" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-file-pdf mr-1"></i> Images to PDF
+                    <button onclick="switchTab('img-to-pdf')" id="nav-img-to-pdf" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-file-pdf mr-1.5"></i> Images to PDF
                     </button>
-                    <button onclick="switchTab('pdf-to-img')" id="nav-pdf-to-img" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-images mr-1"></i> PDF to PNG
+                    <button onclick="switchTab('pdf-to-img')" id="nav-pdf-to-img" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-images mr-1.5"></i> PDF to PNG
                     </button>
-                    <button onclick="switchTab('text-tools')" id="nav-text-tools" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-code mr-1"></i> Text/JSON
+                    <button onclick="switchTab('text-tools')" id="nav-text-tools" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-code mr-1.5"></i> Text/JSON
                     </button>
-                    <button onclick="switchTab('qr-generator')" id="nav-qr-generator" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                        <i class="fa-solid fa-qrcode mr-1"></i> QR
+                    <button onclick="switchTab('qr-generator')" id="nav-qr-generator" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-qrcode mr-1.5"></i> QR
                     </button>
                 </nav>
 
                 <!-- Privacy Badge -->
-                <div class="hidden sm:flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                <div class="hidden sm:flex items-center space-x-2 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
                     <span>100% Client-Side</span>
                 </div>
 
                 <!-- Mobile Navigation Button -->
-                <button onclick="toggleMobileMenu()" class="xl:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <button onclick="toggleMobileMenu()" class="xl:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="hidden xl:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
-            <button onclick="switchTab('home')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Home</button>
-            <button onclick="switchTab('pomodoro')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Pomodoro Timer</button>
-            <button onclick="switchTab('bg-remover')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Background Remover</button>
-            <button onclick="switchTab('img-converter')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">JPG / PNG Converter</button>
-            <button onclick="switchTab('img-resizer')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Resizer & Compressor</button>
-            <button onclick="switchTab('img-to-pdf')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Images to PDF</button>
-            <button onclick="switchTab('pdf-to-img')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">PDF to Images</button>
-            <button onclick="switchTab('text-tools')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">Text & JSON Utilities</button>
-            <button onclick="switchTab('qr-generator')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">QR Code Generator</button>
+        <div id="mobile-menu" class="hidden xl:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-1.5 shadow-2xl">
+            <button onclick="switchTab('home')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">Home</button>
+            <button onclick="switchTab('pomodoro')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2 text-rose-400"></i> Focus Timer</button>
+            <button onclick="switchTab('passport-maker')" id="nav-passport-maker" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+    <i class="fa-solid fa-id-card mr-1.5 text-cyan-400"></i> Passport Maker
+</button>
+            <button onclick="switchTab('bg-remover')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800 flex items-center"><i class="fa-solid fa-eraser mr-2 text-indigo-400"></i> Background Remover</button>
+            <button onclick="switchTab('img-converter')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">JPG / PNG Converter</button>
+            <button onclick="switchTab('img-resizer')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">Resizer & Compressor</button>
+            <button onclick="switchTab('img-to-pdf')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">Images to PDF</button>
+            <button onclick="switchTab('pdf-to-img')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">PDF to Images</button>
+            <button onclick="switchTab('text-tools')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">Text & JSON Utilities</button>
+            <button onclick="switchTab('qr-generator')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-800">QR Code Generator</button>
         </div>
     </header>
 
     <!-- Main Content Containers -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <!-- ================= HOME TAB ================= -->
-        <section id="tab-home" class="tab-content space-y-10">
-            <div class="text-center space-y-4 max-w-3xl mx-auto pt-4">
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200">
-                    <i class="fa-solid fa-heart text-rose-500"></i> Created with ❤️ by TUHIN BALLABH
+        <section id="tab-home" class="tab-content space-y-12">
+            <div class="text-center space-y-5 max-w-3xl mx-auto pt-6">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20 shadow-sm">
+                    <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i> Created with ❤️ by TUHIN BALLABH
                 </span>
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-                    Smart Browser Utilities. <br class="hidden sm:inline"/> Zero Server Uploads.
+                <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
+                    Smart Browser Utilities. <br class="hidden sm:inline"/>
+                    <span class="bg-gradient-to-r from-indigo-400 via-purple-300 to-rose-400 bg-clip-text text-transparent">Zero Server Uploads.</span>
                 </h1>
-                <p class="text-lg text-slate-600 leading-relaxed">
-                    A suite of fast, privacy-focused client-side file and text tools. Focus with Pomodoro, remove backgrounds, convert, resize, process PDFs, format code, and generate QR codes instantly.
+                <p class="text-base sm:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
+                    A suite of high-performance, privacy-first client tools. Deep focus with Pomodoro, remove backgrounds instantly, convert files, process PDFs, and format code locally.
                 </p>
             </div>
 
             <!-- Feature Cards Grid -->
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                <div onclick="switchTab('pomodoro')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:bg-rose-600 group-hover:text-white transition-all">
+                <!-- Card: Pomodoro -->
+                <div onclick="switchTab('pomodoro')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-rose-500/10 hover:border-rose-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Pomodoro Focus Timer</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Boost study productivity with customizable sessions, gorgeous audio alerts, and distraction-free tracking.
+                    <h3 class="text-xl font-bold text-white mb-2">Focus Pomodoro Studio</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Boost productivity with customized focus loops, visual circular progress, and synthesized audio chimes.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-rose-600 group-hover:text-rose-700">
-                        Start Studying <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-rose-400 group-hover:text-rose-300">
+                        Start Focusing <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
 
-                <div onclick="switchTab('bg-remover')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                <!-- Card: BG Remover -->
+                <div onclick="switchTab('bg-remover')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-eraser"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Background Remover</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Make image backgrounds transparent instantly with color removal and tolerance controls.
+                    <h3 class="text-xl font-bold text-white mb-2">Background Remover</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Make image backgrounds transparent instantly with color keying and adjustable tolerance sliders.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-indigo-600 group-hover:text-indigo-700">
-                        Remove Background <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-indigo-400 group-hover:text-indigo-300">
+                        Remove Background <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
 
-                <div onclick="switchTab('img-converter')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl mb-4 group-hover:bg-brand-600 group-hover:text-white transition-all">
+                <!-- Card: Image Converter -->
+                <div onclick="switchTab('img-converter')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-brand-500/10 hover:border-brand-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl group-hover:bg-brand-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-brand-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-right-left"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">JPG / PNG / WEBP Converter</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Seamlessly convert images between popular formats while preserving visual quality.
+                    <h3 class="text-xl font-bold text-white mb-2">JPG / PNG / WEBP Converter</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Seamlessly convert batches of images between popular web formats while preserving visual quality.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-brand-600 group-hover:text-brand-700">
-                        Open Converter <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-brand-400 group-hover:text-brand-300">
+                        Open Converter <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
 
-                <div onclick="switchTab('img-resizer')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                <!-- Card: Image Resizer -->
+                <div onclick="switchTab('img-resizer')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 hover:border-purple-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-compress"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Resizer & Compressor</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Adjust dimensions, control compression quality, and shrink file sizes in real-time.
+                    <h3 class="text-xl font-bold text-white mb-2">Resizer & Compressor</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Adjust pixel dimensions, lock aspect ratios, and control compression quality in real time.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-purple-600 group-hover:text-purple-700">
-                        Resize Image <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-purple-400 group-hover:text-purple-300">
+                        Resize Image <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
 
-                <div onclick="switchTab('img-to-pdf')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                <!-- Card: Images to PDF -->
+                <div onclick="switchTab('img-to-pdf')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 hover:border-emerald-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-file-pdf"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Images to PDF</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Merge photos or documents into a neat single PDF file with customizable orientation and margins.
+                    <h3 class="text-xl font-bold text-white mb-2">Images to PDF Builder</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Merge multiple pictures into a single, clean PDF file with custom margins and orientation.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-emerald-600 group-hover:text-emerald-700">
-                        Build PDF <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-emerald-400 group-hover:text-emerald-300">
+                        Build PDF <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
 
-                <div onclick="switchTab('pdf-to-img')" class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:bg-amber-600 group-hover:text-white transition-all">
+                <!-- Card: PDF to Images -->
+                <div onclick="switchTab('pdf-to-img')" class="group relative bg-slate-900/80 backdrop-blur-xl p-7 rounded-3xl border border-slate-800 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 hover:border-amber-500/40 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/15 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mb-5 group-hover:bg-amber-600 group-hover:text-white transition-all shadow-md">
                         <i class="fa-solid fa-images"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">PDF to Image Extractor</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Render and extract pages from any PDF document as individual high-resolution PNG images.
+                    <h3 class="text-xl font-bold text-white mb-2">PDF to Image Extractor</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Render and extract pages from any standard PDF document as high-resolution PNG images.
                     </p>
-                    <div class="inline-flex items-center text-sm font-semibold text-amber-600 group-hover:text-amber-700">
-                        Extract Pages <i class="fa-solid fa-arrow-right ml-1.5 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="inline-flex items-center text-sm font-semibold text-amber-400 group-hover:text-amber-300">
+                        Extract Pages <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1.5 transition-transform"></i>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= POMODORO TIMER TAB ================= -->
-        <section id="tab-pomodoro" class="tab-content hidden max-w-2xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4 text-center sm:text-left">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Pomodoro Focus Timer</h2>
-                <p class="text-slate-600 text-sm">Stay focused, manage study intervals, and take rejuvenating breaks.</p>
+        <!-- ================= STUNNING POMODORO FOCUS STUDIO TAB ================= -->
+        <section id="tab-pomodoro" class="tab-content hidden max-w-xl mx-auto space-y-6">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-rose-400 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20">Focus Suite</span>
+                <h2 class="text-3xl font-extrabold text-white">Pomodoro Study Studio</h2>
+                <p class="text-slate-400 text-sm">Immersive focus sessions engineered for deep productivity.</p>
             </div>
 
-            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-8">
-                <div class="inline-flex p-1.5 bg-slate-100 rounded-2xl space-x-1">
-                    <button onclick="setPomodoroMode('pomodoro')" id="pomo-mode-btn" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-sm">Study Focus (25m)</button>
-                    <button onclick="setPomodoroMode('shortBreak')" id="short-break-btn" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900">Short Break (5m)</button>
-                    <button onclick="setPomodoroMode('longBreak')" id="long-break-btn" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900">Long Break (15m)</button>
+            <!-- Glassmorphism Timer Card -->
+            <div class="relative bg-slate-900/90 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl shadow-rose-950/40 text-center space-y-8 overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Mode Selector Pills -->
+                <div class="relative z-10 inline-flex p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800 space-x-1 shadow-inner">
+                    <button onclick="setPomodoroMode('pomodoro')" id="pomo-mode-btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-rose-600 text-white shadow-lg shadow-rose-600/30">Focus (25m)</button>
+                    <button onclick="setPomodoroMode('shortBreak')" id="short-break-btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-white">Short Break (5m)</button>
+                    <button onclick="setPomodoroMode('longBreak')" id="long-break-btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-white">Long Break (15m)</button>
                 </div>
 
-                <div class="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center rounded-full bg-gradient-to-tr from-slate-50 to-brand-50 border-8 border-slate-100 shadow-inner">
+                <!-- Circular Progress & Timer Display -->
+                <div class="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+                    <!-- SVG Ring Progress Bar -->
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="44" class="stroke-slate-800" stroke-width="6" fill="transparent"></circle>
+                        <circle id="pomo-progress-ring" cx="50" cy="50" r="44" class="stroke-rose-500 transition-all duration-1000" stroke-width="6" stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round" fill="transparent"></circle>
+                    </svg>
+
+                    <!-- Inner Timer Info -->
                     <div class="absolute inset-0 flex flex-col items-center justify-center space-y-1">
-                        <span id="pomo-timer-display" class="text-5xl sm:text-6xl font-black text-slate-900 tracking-tighter">25:00</span>
-                        <span id="pomo-status-label" class="text-xs font-bold uppercase tracking-widest text-brand-600">Ready to Study</span>
+                        <span id="pomo-timer-display" class="text-5xl sm:text-6xl font-black text-white tracking-tighter drop-shadow-md">25:00</span>
+                        <span id="pomo-status-label" class="text-xs font-bold uppercase tracking-widest text-rose-400">Ready to Focus</span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-center space-x-4">
-                    <button id="pomo-start-btn" onclick="togglePomodoroTimer()" class="px-8 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-base shadow-lg shadow-brand-500/30 transition-all transform active:scale-95 flex items-center">
-                        <i class="fa-solid fa-play mr-2"></i> Start Session
+                <!-- Action Controls -->
+                <div class="relative z-10 flex items-center justify-center space-x-4">
+                    <button id="pomo-start-btn" onclick="togglePomodoroTimer()" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-rose-600/25 transition-all transform active:scale-95 flex items-center">
+                        <i class="fa-solid fa-play mr-2"></i> Start Focus Session
                     </button>
-                    <button onclick="resetPomodoroTimer()" class="px-5 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-all border border-slate-200">
-                        <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset
+                    <button onclick="resetPomodoroTimer()" class="px-4 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-all border border-slate-700 shadow-md">
+                        <i class="fa-solid fa-rotate-right"></i>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-center">
-                    <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed Sessions</span>
-                        <span id="pomo-sessions-count" class="text-lg font-bold text-slate-800">0</span>
+                <!-- Statistics Footer -->
+                <div class="grid grid-cols-2 gap-4 pt-6 border-t border-slate-800/80 text-center">
+                    <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                        <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Completed Sessions</span>
+                        <span id="pomo-sessions-count" class="text-xl font-black text-white">0</span>
                     </div>
-                    <div>
-                        <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Sound Alerts</span>
-                        <span class="text-lg font-bold text-emerald-600"><i class="fa-solid fa-volume-high"></i> Active</span>
+                    <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                        <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Audio Chimes</span>
+                        <span class="text-xl font-black text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-volume-high text-xs mr-1.5"></i> Active</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= BACKGROUND REMOVER TAB ================= -->
-        <section id="tab-bg-remover" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Background Remover & Transparent PNG</h2>
-                <p class="text-slate-600 text-sm">Upload an image, pick or auto-detect background color, and make it transparent instantly.</p>
+
+
+
+<!-- ================= PASSPORT PHOTO MAKER TAB ================= -->
+<section id="tab-passport-maker" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+    <div class="border-b border-slate-800 pb-4">
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Online Passport Size Photo Maker</h2>
+        <p class="text-slate-400 text-sm">Crop your face, remove studio backgrounds, choose official colors, and download.</p>
+    </div>
+
+    <!-- Drop Zone -->
+    <div id="passport-dropzone" onclick="document.getElementById('passport-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-cyan-500/5 transition-all cursor-pointer shadow-xl">
+        <input type="file" id="passport-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="loadPassportImage(this.files[0])">
+        <div class="space-y-3">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 mx-auto flex items-center justify-center text-2xl shadow-md">
+                <i class="fa-solid fa-id-card"></i>
+            </div>
+            <div>
+                <p class="font-medium text-slate-200">Click or drag image for passport photo</p>
+                <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="passport-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-xl">
+        <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-white text-base">Interactive Crop & Preview</h3>
+                <span class="text-xs font-semibold text-cyan-400 bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">Drag box over face</span>
+            </div>
+            <div class="border border-slate-800 rounded-2xl p-3 flex items-center justify-center h-80 overflow-auto bg-slate-950 relative">
+                <canvas id="passport-canvas" class="max-h-full max-w-full object-contain rounded-xl shadow-lg cursor-crosshair"></canvas>
+            </div>
+            <p class="text-xs text-slate-500 text-center">Click & drag on the image to frame your face, then click Crop.</p>
+        </div>
+
+        <div class="space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+                <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">Passport Studio Controls</h3>
+                
+                <!-- Crop Actions -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="applyPassportCrop()" class="py-2 px-3 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 font-semibold text-xs border border-cyan-500/30 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-crop mr-1.5"></i> Crop Face
+                    </button>
+                    <button onclick="resetPassportCrop()" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i> Reset Crop
+                    </button>
+                </div>
+
+                <!-- Dimension Preset -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Photo Dimension / Country</label>
+                    <select id="passport-dimension" onchange="processPassportFinal()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                        <option value="india">India (3.5 x 4.5 cm)</option>
+                        <option value="us">US / Global (2 x 2 inches)</option>
+                    </select>
+                </div>
+
+                <!-- Background Color Selection -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2">New Background Color</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setPassportBg('#ffffff', this)" class="passport-bg-btn py-2 px-3 rounded-xl bg-white text-slate-900 font-bold text-xs border-2 border-cyan-500 transition-all">White</button>
+                        <button onclick="setPassportBg('#1d4ed8', this)" class="passport-bg-btn py-2 px-3 rounded-xl bg-blue-600 text-white font-bold text-xs border-2 border-transparent transition-all">Blue</button>
+                        <button onclick="setPassportBg('#b91c1c', this)" class="passport-bg-btn py-2 px-3 rounded-xl bg-red-600 text-white font-bold text-xs border-2 border-transparent transition-all">Red</button>
+                        <button onclick="setPassportBg('#15803d', this)" class="passport-bg-btn py-2 px-3 rounded-xl bg-green-600 text-white font-bold text-xs border-2 border-transparent transition-all">Green</button>
+                    </div>
+                </div>
+
+                <!-- Background Removal Tolerance -->
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+                        <span>Background Removal Sensitivity</span>
+                        <span id="pass-tolerance-val" class="text-cyan-400 font-bold">40</span>
+                    </div>
+                    <input type="range" id="pass-tolerance" min="10" max="100" value="40" oninput="document.getElementById('pass-tolerance-val').textContent = this.value; processPassportFinal();" class="w-full accent-cyan-500">
+                </div>
             </div>
 
-            <div id="bg-dropzone" onclick="document.getElementById('bg-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-8 text-center bg-white hover:bg-indigo-50/50 transition-all cursor-pointer shadow-sm">
-                <input type="file" id="bg-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="loadBgImage(this.files[0])">
-                <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 mx-auto flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-eraser"></i>
+            <button onclick="downloadPassportPhoto()" class="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-download mr-2"></i> Download Passport Photo
+            </button>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+       <!-- ================= BACKGROUND REMOVER TAB ================= -->
+<section id="tab-bg-remover" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+    <div class="border-b border-slate-800 pb-4">
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">Background Remover & Crop Studio</h2>
+        <p class="text-slate-400 text-sm">Upload an image, crop unnecessary areas, remove the background, and download transparent PNGs.</p>
+    </div>
+
+    <div id="bg-dropzone" onclick="document.getElementById('bg-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-indigo-500/5 transition-all cursor-pointer shadow-xl">
+        <input type="file" id="bg-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="loadBgImage(this.files[0])">
+        <div class="space-y-3">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center text-2xl shadow-md">
+                <i class="fa-solid fa-eraser"></i>
+            </div>
+            <div>
+                <p class="font-medium text-slate-200">Click or drag image to start editing</p>
+                <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="bg-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-xl">
+        <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-white text-base">Live Preview</h3>
+                <span id="bg-step-indicator" class="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">Step 1: Crop Image</span>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="checkerboard border border-slate-800 rounded-2xl p-3 flex items-center justify-center h-72 overflow-auto bg-slate-950 relative">
+                <canvas id="bg-canvas" class="max-h-full max-w-full object-contain rounded-xl shadow-lg cursor-crosshair"></canvas>
+            </div>
+            <p id="bg-helper-text" class="text-xs text-slate-500 text-center">Click & drag on the image to select a custom crop area, or skip to background removal.</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="space-y-5 flex flex-col justify-between">
+            <div class="space-y-4">
+                <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">Studio Controls</h3>
+                
+                <!-- Crop Action Toolbar -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="applyCrop()" class="py-2.5 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 font-semibold text-xs border border-indigo-500/30 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-crop mr-1.5"></i> Apply Crop Selection
+                    </button>
+                    <button onclick="resetCrop()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i> Reset Crop
+                    </button>
+                </div>
+
+                <!-- Removal Options -->
+                <div class="space-y-3 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Background Removal Mode</label>
+                        <select id="bg-mode" onchange="processBgRemoval()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="white">Remove White / Light Background</option>
+                            <option value="black">Remove Black / Dark Background</option>
+                            <option value="corner">Auto-Remove Corner Color</option>
+                        </select>
                     </div>
                     <div>
-                        <p class="font-medium text-slate-800">Click or drag image to remove background</p>
-                        <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+                            <span>Color Matching Tolerance</span>
+                            <span id="bg-tolerance-val" class="text-indigo-400 font-bold">30</span>
+                        </div>
+                        <input type="range" id="bg-tolerance" min="5" max="150" value="30" oninput="document.getElementById('bg-tolerance-val').textContent = this.value; processBgRemoval();" class="w-full accent-indigo-500">
                     </div>
                 </div>
             </div>
 
-            <div id="bg-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="space-y-3">
-                    <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Live Preview (Transparent)</h3>
-                    <div class="checkerboard border border-slate-200 rounded-xl p-3 flex items-center justify-center h-72 overflow-auto">
-                        <canvas id="bg-canvas" class="max-h-full max-w-full object-contain rounded-lg shadow-sm"></canvas>
-                    </div>
-                    <p class="text-xs text-slate-500 text-center">Checkerboard grid indicates transparent areas.</p>
-                </div>
-
-                <div class="space-y-5 flex flex-col justify-between">
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Removal Options</h3>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Removal Mode</label>
-                            <select id="bg-mode" onchange="processBgRemoval()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <option value="white">Remove White / Light Background</option>
-                                <option value="black">Remove Black / Dark Background</option>
-                                <option value="corner">Auto-Remove Corner Color</option>
-                            </select>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                                <span>Color Matching Tolerance</span>
-                                <span id="bg-tolerance-val">30</span>
-                            </div>
-                            <input type="range" id="bg-tolerance" min="5" max="150" value="30" oninput="document.getElementById('bg-tolerance-val').textContent = this.value; processBgRemoval();" class="w-full accent-indigo-600">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <button onclick="processBgRemoval()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-all flex items-center justify-center border border-slate-200">
-                            <i class="fa-solid fa-rotate mr-2"></i> Re-Apply Filter
-                        </button>
-                        <button onclick="downloadTransparentPng()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center">
-                            <i class="fa-solid fa-download mr-2"></i> Download Transparent PNG
-                        </button>
-                    </div>
-                </div>
+            <div class="space-y-2.5">
+                <button onclick="processBgRemoval()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition-all flex items-center justify-center border border-slate-700">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Re-Apply Background Removal
+                </button>
+                <button onclick="downloadTransparentPng()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center">
+                    <i class="fa-solid fa-download mr-2"></i> Download Transparent PNG
+                </button>
             </div>
-        </section>
+        </div>
+    </div>
+</section>
 
         <!-- ================= IMAGE CONVERTER TAB ================= -->
         <section id="tab-img-converter" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Image Format Converter</h2>
-                <p class="text-slate-600 text-sm">Convert images between JPG, PNG, and WEBP formats in your browser.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Image Format Converter</h2>
+                <p class="text-slate-400 text-sm">Convert images between JPG, PNG, and WEBP formats securely in your browser.</p>
             </div>
-            <div id="conv-dropzone" onclick="document.getElementById('conv-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-8 text-center bg-white hover:bg-brand-50/50 transition-all cursor-pointer shadow-sm">
+            <div id="conv-dropzone" onclick="document.getElementById('conv-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-brand-500/5 transition-all cursor-pointer shadow-xl">
                 <input type="file" id="conv-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" multiple onchange="handleConverterFiles(this.files)">
                 <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-400 mx-auto flex items-center justify-center text-2xl shadow-md"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                     <div>
-                        <p class="font-medium text-slate-800">Click to select or drag and drop images here</p>
+                        <p class="font-medium text-slate-200">Click to select or drag and drop images here</p>
                         <p class="text-xs text-slate-500 mt-1">Supports JPG, PNG, and WEBP files</p>
                     </div>
                 </div>
             </div>
-            <div id="conv-controls" class="hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div id="conv-controls" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <label class="text-sm font-medium text-slate-700">Target Format:</label>
-                    <select id="conv-target-format" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <label class="text-sm font-medium text-slate-300">Target Format:</label>
+                    <select id="conv-target-format" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         <option value="image/png">PNG (.png)</option>
                         <option value="image/jpeg">JPG (.jpg)</option>
                         <option value="image/webp">WEBP (.webp)</option>
                     </select>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="clearConverter()" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-slate-200"><i class="fa-solid fa-trash mr-1"></i> Clear All</button>
-                    <button onclick="convertAllImages()" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 shadow-sm transition-all"><i class="fa-solid fa-gear mr-1"></i> Convert Images</button>
+                    <button onclick="clearConverter()" class="px-3 py-1.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 border border-slate-800"><i class="fa-solid fa-trash mr-1"></i> Clear All</button>
+                    <button onclick="convertAllImages()" class="px-4 py-1.5 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-500 shadow-lg shadow-brand-600/30 transition-all"><i class="fa-solid fa-gear mr-1"></i> Convert Images</button>
                 </div>
             </div>
             <div id="conv-file-list" class="space-y-4"></div>
@@ -354,65 +513,65 @@
 
         <!-- ================= IMAGE RESIZER TAB ================= -->
         <section id="tab-img-resizer" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Image Resizer & Compressor</h2>
-                <p class="text-slate-600 text-sm">Resize dimensions, maintain aspect ratio, and adjust image quality compression.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Image Resizer & Compressor</h2>
+                <p class="text-slate-400 text-sm">Resize dimensions, maintain aspect ratio, and adjust compression quality.</p>
             </div>
-            <div id="resize-dropzone" onclick="document.getElementById('resize-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-purple-500 rounded-2xl p-8 text-center bg-white hover:bg-purple-50/50 transition-all cursor-pointer shadow-sm">
+            <div id="resize-dropzone" onclick="document.getElementById('resize-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-purple-500/5 transition-all cursor-pointer shadow-xl">
                 <input type="file" id="resize-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="loadResizeImage(this.files[0])">
                 <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 mx-auto flex items-center justify-center text-xl"><i class="fa-solid fa-compress"></i></div>
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 mx-auto flex items-center justify-center text-2xl shadow-md"><i class="fa-solid fa-compress"></i></div>
                     <div>
-                        <p class="font-medium text-slate-800">Select an image to resize or compress</p>
+                        <p class="font-medium text-slate-200">Select an image to resize or compress</p>
                         <p class="text-xs text-slate-500 mt-1">Upload JPG, PNG or WEBP</p>
                     </div>
                 </div>
             </div>
-            <div id="resize-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div id="resize-workspace" class="hidden grid md:grid-cols-2 gap-6 bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-xl">
                 <div class="space-y-4">
-                    <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Image Preview</h3>
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex items-center justify-center h-64 overflow-hidden">
-                        <img id="resize-preview-img" class="max-h-full max-w-full object-contain rounded-lg">
+                    <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">Image Preview</h3>
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2 flex items-center justify-center h-64 overflow-hidden">
+                        <img id="resize-preview-img" class="max-h-full max-w-full object-contain rounded-xl">
                     </div>
-                    <div class="text-xs text-slate-500 space-y-1">
-                        <p>Original Dimensions: <span id="resize-orig-dim" class="font-semibold text-slate-700">0 x 0</span> px</p>
-                        <p>Original Size: <span id="resize-orig-size" class="font-semibold text-slate-700">0 KB</span></p>
+                    <div class="text-xs text-slate-400 space-y-1">
+                        <p>Original Dimensions: <span id="resize-orig-dim" class="font-semibold text-white">0 x 0</span> px</p>
+                        <p>Original Size: <span id="resize-orig-size" class="font-semibold text-white">0 KB</span></p>
                     </div>
                 </div>
                 <div class="space-y-5 flex flex-col justify-between">
                     <div class="space-y-4">
-                        <h3 class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2">Resize Settings</h3>
+                        <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">Resize Settings</h3>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Width (px)</label>
-                                <input type="number" id="resize-width" oninput="handleDimensionChange('width')" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Width (px)</label>
+                                <input type="number" id="resize-width" oninput="handleDimensionChange('width')" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Height (px)</label>
-                                <input type="number" id="resize-height" oninput="handleDimensionChange('height')" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Height (px)</label>
+                                <input type="number" id="resize-height" oninput="handleDimensionChange('height')" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
                             </div>
                         </div>
-                        <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
-                            <input type="checkbox" id="resize-aspect-ratio" checked class="rounded text-purple-600 focus:ring-purple-500">
+                        <label class="flex items-center space-x-2 text-xs font-medium text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="resize-aspect-ratio" checked class="rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-purple-500">
                             <span>Maintain aspect ratio</span>
                         </label>
                         <div>
-                            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                            <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
                                 <span>Compression Quality</span>
-                                <span id="quality-val">90%</span>
+                                <span id="quality-val" class="text-purple-400 font-bold">90%</span>
                             </div>
-                            <input type="range" id="resize-quality" min="10" max="100" value="90" oninput="document.getElementById('quality-val').textContent = this.value + '%'" class="w-full accent-purple-600">
+                            <input type="range" id="resize-quality" min="10" max="100" value="90" oninput="document.getElementById('quality-val').textContent = this.value + '%'" class="w-full accent-purple-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Output Format</label>
-                            <select id="resize-format" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Output Format</label>
+                            <select id="resize-format" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none">
                                 <option value="image/jpeg">JPG (.jpg)</option>
                                 <option value="image/png">PNG (.png)</option>
                                 <option value="image/webp">WEBP (.webp)</option>
                             </select>
                         </div>
                     </div>
-                    <button onclick="processAndDownloadResized()" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center">
+                    <button onclick="processAndDownloadResized()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center">
                         <i class="fa-solid fa-download mr-2"></i> Process & Download
                     </button>
                 </div>
@@ -421,45 +580,45 @@
 
         <!-- ================= IMAGES TO PDF TAB ================= -->
         <section id="tab-img-to-pdf" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Images to PDF Converter</h2>
-                <p class="text-slate-600 text-sm">Combine multiple pictures into a single, clean PDF file.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Images to PDF Converter</h2>
+                <p class="text-slate-400 text-sm">Combine multiple pictures into a single, clean PDF file.</p>
             </div>
-            <div id="pdf-dropzone" onclick="document.getElementById('pdf-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-8 text-center bg-white hover:bg-emerald-50/50 transition-all cursor-pointer shadow-sm">
+            <div id="pdf-dropzone" onclick="document.getElementById('pdf-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-emerald-500/5 transition-all cursor-pointer shadow-xl">
                 <input type="file" id="pdf-file-input" accept="image/jpeg, image/png, image/webp" class="hidden" multiple onchange="handlePdfFiles(this.files)">
                 <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center text-2xl shadow-md"><i class="fa-solid fa-file-circle-plus"></i></div>
                     <div>
-                        <p class="font-medium text-slate-800">Select or drop pictures to compile into PDF</p>
+                        <p class="font-medium text-slate-200">Select or drop pictures to compile into PDF</p>
                         <p class="text-xs text-slate-500 mt-1">Upload multiple photos (JPG, PNG, WEBP)</p>
                     </div>
                 </div>
             </div>
-            <div id="pdf-controls" class="hidden bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div id="pdf-controls" class="hidden bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Page Orientation</label>
-                        <select id="pdf-orientation" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Page Orientation</label>
+                        <select id="pdf-orientation" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                             <option value="p">Portrait</option>
                             <option value="l">Landscape</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Page Margin</label>
-                        <select id="pdf-margin" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Page Margin</label>
+                        <select id="pdf-margin" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                             <option value="0">No Margin</option>
                             <option value="10">Small (10mm)</option>
                             <option value="20">Large (20mm)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Output File Name</label>
-                        <input type="text" id="pdf-filename" value="compiled-document" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="File name without .pdf">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Output File Name</label>
+                        <input type="text" id="pdf-filename" value="compiled-document" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="File name without .pdf">
                     </div>
                 </div>
-                <div class="flex items-center justify-between border-t border-slate-100 pt-4">
-                    <button onclick="clearPdfList()" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-slate-200"><i class="fa-solid fa-trash mr-1"></i> Clear All</button>
-                    <button onclick="generatePDF()" class="px-5 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-all flex items-center"><i class="fa-solid fa-download mr-2"></i> Generate & Download PDF</button>
+                <div class="flex items-center justify-between border-t border-slate-800 pt-4">
+                    <button onclick="clearPdfList()" class="px-3 py-1.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 border border-slate-800"><i class="fa-solid fa-trash mr-1"></i> Clear All</button>
+                    <button onclick="generatePDF()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all flex items-center"><i class="fa-solid fa-download mr-2"></i> Generate & Download PDF</button>
                 </div>
             </div>
             <div id="pdf-preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
@@ -467,16 +626,16 @@
 
         <!-- ================= PDF TO IMAGES TAB ================= -->
         <section id="tab-pdf-to-img" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">PDF to Image Extractor</h2>
-                <p class="text-slate-600 text-sm">Render and convert PDF pages into PNG images completely inside your browser.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">PDF to Image Extractor</h2>
+                <p class="text-slate-400 text-sm">Render and convert PDF pages into PNG images completely inside your browser.</p>
             </div>
-            <div id="pdf-img-dropzone" onclick="document.getElementById('pdf-img-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl p-8 text-center bg-white hover:bg-amber-50/50 transition-all cursor-pointer shadow-sm">
+            <div id="pdf-img-dropzone" onclick="document.getElementById('pdf-img-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-amber-500 rounded-3xl p-8 text-center bg-slate-900/60 hover:bg-amber-500/5 transition-all cursor-pointer shadow-xl">
                 <input type="file" id="pdf-img-file-input" accept="application/pdf" class="hidden" onchange="renderPdfToImages(this.files[0])">
                 <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-xl"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mx-auto flex items-center justify-center text-2xl shadow-md"><i class="fa-solid fa-file-pdf"></i></div>
                     <div>
-                        <p class="font-medium text-slate-800">Select a PDF file to extract pages as images</p>
+                        <p class="font-medium text-slate-200">Select a PDF file to extract pages as images</p>
                         <p class="text-xs text-slate-500 mt-1">Supports standard PDF documents</p>
                     </div>
                 </div>
@@ -486,54 +645,54 @@
 
         <!-- ================= TEXT & JSON UTILITIES TAB ================= -->
         <section id="tab-text-tools" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Text & JSON Utilities</h2>
-                <p class="text-slate-600 text-sm">Word count metrics, case conversions, and JSON formatting/validation.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Text & JSON Utilities</h2>
+                <p class="text-slate-400 text-sm">Word count metrics, case conversions, and JSON formatting/validation.</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <textarea id="text-input" rows="8" oninput="analyzeText()" class="w-full border border-slate-300 rounded-xl p-4 text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Paste or type text/JSON content here..."></textarea>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl text-center border border-slate-100">
-                    <div><span class="block text-xs font-medium text-slate-500">Characters</span><span id="stat-chars" class="text-base font-bold text-slate-800">0</span></div>
-                    <div><span class="block text-xs font-medium text-slate-500">Words</span><span id="stat-words" class="text-base font-bold text-slate-800">0</span></div>
-                    <div><span class="block text-xs font-medium text-slate-500">Lines</span><span id="stat-lines" class="text-base font-bold text-slate-800">0</span></div>
-                    <div><span class="block text-xs font-medium text-slate-500">JSON Status</span><span id="stat-json" class="text-xs font-bold text-slate-400">Not Evaluated</span></div>
+            <div class="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+                <textarea id="text-input" rows="8" oninput="analyzeText()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-2xl p-4 text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Paste or type text/JSON content here..."></textarea>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3.5 rounded-2xl text-center border border-slate-800">
+                    <div><span class="block text-xs font-medium text-slate-500">Characters</span><span id="stat-chars" class="text-base font-bold text-white">0</span></div>
+                    <div><span class="block text-xs font-medium text-slate-500">Words</span><span id="stat-words" class="text-base font-bold text-white">0</span></div>
+                    <div><span class="block text-xs font-medium text-slate-500">Lines</span><span id="stat-lines" class="text-base font-bold text-white">0</span></div>
+                    <div><span class="block text-xs font-medium text-slate-500">JSON Status</span><span id="stat-json" class="text-xs font-bold text-slate-500">Not Evaluated</span></div>
                 </div>
                 <div class="flex flex-wrap gap-2 pt-2">
-                    <button onclick="transformCase('upper')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">UPPERCASE</button>
-                    <button onclick="transformCase('lower')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">lowercase</button>
-                    <button onclick="transformCase('title')" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700">Title Case</button>
-                    <button onclick="formatJSON()" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm ml-auto"><i class="fa-solid fa-align-left mr-1"></i> Format JSON</button>
-                    <button onclick="copyTextContent()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm"><i class="fa-solid fa-copy mr-1"></i> Copy Text</button>
+                    <button onclick="transformCase('upper')" class="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800 text-xs font-semibold text-slate-300">UPPERCASE</button>
+                    <button onclick="transformCase('lower')" class="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800 text-xs font-semibold text-slate-300">lowercase</button>
+                    <button onclick="transformCase('title')" class="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800 text-xs font-semibold text-slate-300">Title Case</button>
+                    <button onclick="formatJSON()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md ml-auto"><i class="fa-solid fa-align-left mr-1"></i> Format JSON</button>
+                    <button onclick="copyTextContent()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold shadow-md"><i class="fa-solid fa-copy mr-1"></i> Copy Text</button>
                 </div>
             </div>
         </section>
 
         <!-- ================= QR CODE GENERATOR TAB ================= -->
         <section id="tab-qr-generator" class="tab-content hidden max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-slate-200 pb-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">QR Code Studio</h2>
-                <p class="text-slate-600 text-sm">Generate customizable QR codes for links, text, and contact details instantly.</p>
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">QR Code Studio</h2>
+                <p class="text-slate-400 text-sm">Generate customizable QR codes for links, text, and contact details instantly.</p>
             </div>
-            <div class="grid md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="grid md:grid-cols-2 gap-6 bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-xl">
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Text or URL Content</label>
-                        <input type="text" id="qr-text" value="https://github.com" oninput="generateQRCode()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="Enter text or website URL">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Text or URL Content</label>
+                        <input type="text" id="qr-text" value="https://github.com" oninput="generateQRCode()" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="Enter text or website URL">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Foreground Color</label>
-                            <input type="color" id="qr-fg" value="#0f172a" onchange="generateQRCode()" class="w-full h-10 border border-slate-300 rounded-lg p-1 cursor-pointer">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Foreground Color</label>
+                            <input type="color" id="qr-fg" value="#0f172a" onchange="generateQRCode()" class="w-full h-10 bg-slate-950 border border-slate-800 rounded-xl p-1 cursor-pointer">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Background Color</label>
-                            <input type="color" id="qr-bg" value="#ffffff" onchange="generateQRCode()" class="w-full h-10 border border-slate-300 rounded-lg p-1 cursor-pointer">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Background Color</label>
+                            <input type="color" id="qr-bg" value="#ffffff" onchange="generateQRCode()" class="w-full h-10 bg-slate-950 border border-slate-800 rounded-xl p-1 cursor-pointer">
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col items-center justify-center space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0">
-                    <div id="qrcode-box" class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center"></div>
-                    <button onclick="downloadQRCode()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-sm transition-all flex items-center"><i class="fa-solid fa-download mr-2"></i> Download QR Image</button>
+                <div class="flex flex-col items-center justify-center space-y-4 border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0">
+                    <div id="qrcode-box" class="p-4 bg-white rounded-2xl border border-slate-800 shadow-md flex items-center justify-center"></div>
+                    <button onclick="downloadQRCode()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm shadow-lg shadow-rose-600/30 transition-all flex items-center"><i class="fa-solid fa-download mr-2"></i> Download QR Image</button>
                 </div>
             </div>
         </section>
@@ -541,11 +700,11 @@
     </main>
 
     <!-- Footer -->
-    <footer class="mt-auto bg-white border-t border-slate-200 py-6">
-        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center text-xs text-slate-500 space-y-2 sm:space-y-0">
-            <div>&copy; <span id="year"></span> <strong>FileGenius</strong>. Created with ❤️ by <strong class="text-slate-800">TUHIN BALLABH</strong>.</div>
+    <footer class="mt-auto bg-slate-900/80 backdrop-blur-xl border-t border-slate-800 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center text-xs text-slate-400 space-y-2 sm:space-y-0">
+            <div>&copy; <span id="year"></span> <strong>FileGenius</strong>. Created with ❤️ by <strong class="text-white">TUHIN BALLABH</strong>.</div>
             <div class="flex justify-center space-x-4">
-                <span class="inline-flex items-center text-emerald-700 font-semibold"><i class="fa-solid fa-shield-halved mr-1"></i> Client-Side Processing</span>
+                <span class="inline-flex items-center text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved mr-1.5"></i> 100% Client-Side Processing</span>
             </div>
         </div>
     </footer>
